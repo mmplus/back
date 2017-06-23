@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 	"log"
@@ -40,15 +41,29 @@ func (a *App) Initialize(username, password, dburi string) {
 
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/runs", a.getRuns).Methods("GET")
+	a.Router.HandleFunc("/top", a.getTop).Methods("GET")
 }
 
 func (a *App) Run(addr string) {
-	log.Fatal(http.ListenAndServe(":8888", a.Router))
+	cors := handlers.AllowedOrigins([]string{"*"})
+	log.Fatal(http.ListenAndServe(":8888", handlers.CORS(cors)(a.Router)))
 }
 
 func (a *App) getRuns(w http.ResponseWriter, r *http.Request) {
-	MongoRunCollection := a.MongoSession.DB("mmplus").C("run")
+	MongoRunCollection := a.MongoSession.DB("test").C("run")
 	runs, err := getRuns(MongoRunCollection)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, runs)
+}
+
+func (a *App) getTop(w http.ResponseWriter, r *http.Request) {
+	MongoRunCollection := a.MongoSession.DB("test").C("run")
+	runs, err := getTop(MongoRunCollection)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())

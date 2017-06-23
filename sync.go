@@ -220,7 +220,7 @@ func main() {
 
 	MongoSession := GetMongoConnection()
 	defer MongoSession.Close()
-	MongoRunCollection := MongoSession.DB("mmplus").C("run")
+	MongoRunCollection := MongoSession.DB("test").C("run")
 
 	for realm, region := range realmsUS {
 		for _, dungeon := range dungeons {
